@@ -5,6 +5,8 @@ import svgoutline
 import svgoutline
 import configparser
 import subprocess
+import traceback
+import concurrent.futures
 import xml.etree.ElementTree
 
 globalOptions = {
@@ -29,48 +31,54 @@ globalOptions = {
 templateContent = open(os.path.dirname(os.path.realpath(__file__)) + "/supp/template.scad", "r").read()
 
 def processFile(filename):
-	print(F"Processing '{filename}'...");
+	try:
+		print(F"Processing '{filename}'...");
 
-	options = globalOptions
-	absoluteFilePath = os.path.realpath(filename)
+		options = globalOptions
+		absoluteFilePath = os.path.realpath(filename)
+		baseFilePath = os.path.splitext(absoluteFilePath)[0]
 
-	# Generate scad file
-	if True:
-		scadContent = ""
+		# Generate scad file
+		if True:
+			scadContent = ""
 
-		svgData = svgoutline.svg_to_outlines(xml.etree.ElementTree.parse(filename).getroot(), 32, 32)
-		scadContent += "lines = ["
-		lineI = 0
-		for lineData in svgData:
-			if lineI > 0:
-				scadContent += ", "
-
-			scadContent += "["
-			pointI = 0
-
-			for point in lineData[2]:
-				if pointI > 0:
+			svgData = svgoutline.svg_to_outlines(xml.etree.ElementTree.parse(filename).getroot(), 32, 32)
+			scadContent += "lines = ["
+			lineI = 0
+			for lineData in svgData:
+				if lineI > 0:
 					scadContent += ", "
 
-				scadContent += F"[{point[0]}, {point[1]}]"
-				pointI += 1
-				
-			scadContent += "]"
-			lineI += 1
+				scadContent += "["
+				pointI = 0
 
-		scadContent += "];\n"
+				for point in lineData[2]:
+					if pointI > 0:
+						scadContent += ", "
 
-		for key, data in options:
-			scadContent += F"{key} = {data[0] if isnumeric(data[0]) else F"\"{data[0]}\""};\n"
+					scadContent += F"[{point[0]}, {point[1]}]"
+					pointI += 1
+					
+				scadContent += "]"
+				lineI += 1
 
-		scadContent += templateContent
+			scadContent += "];\n"
 
-		open(os.path.splitext(absoluteFilePath)[0] + ".scad", "w").write(scadContent)
+			for key, data in options.items():
+				val = data[0] if str(data[0]).replace('.', '', 1).isnumeric() else F"\"{str(data[0])}\""
+				scadContent += F"{key} = {val};\n"
 
-	if options["genStl"][0] == 1:
-		subprocess.run([options["openscadLocation"][0], absoluteFilePath, "--o", "stl"])
+			scadContent += templateContent
 
-	print(F"Processed '{filename}'...");
+			open(baseFilePath + ".scad", "w").write(scadContent)
+
+		if str(options["genStl"][0]) == "1":
+			subprocess.run([options["openscadLocation"][0], baseFilePath + ".scad", "--o", baseFilePath + ".stl"])
+
+		print(F"Processed '{filename}'...");
+
+	except Exception as e:
+		traceback.print_exc()
 
 def main():
 	try:
@@ -80,19 +88,24 @@ def main():
 			globalOptions[key][0] = value
 
 		# Prase config file
-		if path.exists(globalOptions["configFile"][0]):
+		if os.path.exists(globalOptions["configFile"][0]):
 			config = configparser.ConfigParser()
+			config.optionxform=str
 			config.read(globalOptions["configFile"][0])
 
-			for key, value in config["DEFAULT"]:
-				globalOptions[key] = [value, "--"]
+			cfg = config["DEFAULT"]
+			for key in cfg:
+				globalOptions[key] = [cfg.get(key), "--"]
+
+		else:
+			print("Config file not found.")
 
 		# Process files
-		executor = ThreadPoolExecutor()
+		executor = concurrent.futures.ThreadPoolExecutor()
 		for file in files:
 			executor.submit(processFile, file)
 
 	except Exception as e:
-		print(e.message)
+		traceback.print_exc()
 
 main()
