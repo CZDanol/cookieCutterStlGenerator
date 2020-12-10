@@ -10,22 +10,22 @@ import concurrent.futures
 import xml.etree.ElementTree
 
 globalOptions = {
-	"baseWidth": [4, "Width of the base"],
-	"baseHeight": [1, "Height of the base"],
+	"baseWidth": [4, "(mm) Width of the base"],
+	"baseHeight": [1, "(mm) Height of the base"],
 
-	"cutterWidth": [0.5, "Width of the cutter extrusion"],
-	"cutterHeight": [10, "Height of the cutter extrusioon (including wedge)"],
-	"cutterWedgeHeight": [1, "Height of the wedge of the cutter extrusion. The larger this number, the sharper the cutter."],
+	"cutterWidth": [0.5, "(mm) Width of the cutter extrusion"],
+	"cutterHeight": [10, "(mm) Height of the cutter extrusioon (including wedge)"],
+	"cutterWedgeHeight": [1, "(mm) Height of the wedge of the cutter extrusion. The larger this number, the sharper the cutter."],
 
 	"meshAlways": [0, "If set to 1, a support mesh is always generated"],
-	"meshDistance": [10, "Distance of mesh grills"],
-	"meshWidth": [1, "Width of mesh grills"],
-	"meshArea": [400, "Area where the mesh is generated (+-)"],
+	"meshDistance": [10, "(mm) Distance of mesh grills"],
+	"meshWidth": [1, "(mm) Width of mesh grills"],
+	"meshArea": [400, "(mm) Area where the mesh is generated (+-)"],
 
 	"openscadLocation": [None, "Location of the scad exe file"],
 	"genStl": [0, "Will automatically generate STL files if set to 1. openscadLocation needs to be set"],
 
-	"configFile": ["config.ini", "Path to the config file (config.ini by default). Settings from this file will be aplied if the file exists."],
+	"configFile": ["config.ini", "Path to the config file. Settings from this file will be aplied if the file exists. Settings have to be in the [DEFAULT] section."],
 }
 
 templateContent = open(os.path.dirname(os.path.realpath(__file__)) + "/supp/template.scad", "r").read()
@@ -38,11 +38,14 @@ def processFile(filename):
 		absoluteFilePath = os.path.realpath(filename)
 		baseFilePath = os.path.splitext(absoluteFilePath)[0]
 
+		scadFilePath = baseFilePath + ".scad"
+		stlFilePath = baseFilePath + ".stl"
+
 		# Generate scad file
 		if True:
 			scadContent = ""
 
-			svgData = svgoutline.svg_to_outlines(xml.etree.ElementTree.parse(filename).getroot(), 32, 32)
+			svgData = svgoutline.svg_to_outlines(xml.etree.ElementTree.parse(filename).getroot(), pixels_per_mm=10)
 			scadContent += "lines = ["
 			lineI = 0
 			for lineData in svgData:
@@ -70,10 +73,10 @@ def processFile(filename):
 
 			scadContent += templateContent
 
-			open(baseFilePath + ".scad", "w").write(scadContent)
+			open(scadFilePath, "w").write(scadContent)
 
 		if str(options["genStl"][0]) == "1":
-			subprocess.run([options["openscadLocation"][0], baseFilePath + ".scad", "--o", baseFilePath + ".stl"])
+			subprocess.run([options["openscadLocation"][0], scadFilePath, "--o", stlFilePath])
 
 		print(F"Processed '{filename}'...");
 
@@ -83,9 +86,18 @@ def processFile(filename):
 def main():
 	try:
 		# Parse command line options
-		optlist, files = getopt.getopt(sys.argv[1:], "", map(lambda x : x + "=", globalOptions.keys()))
+		optlist, files = getopt.getopt(sys.argv[1:], "", list(map(lambda x : x + "=", globalOptions.keys())) + ["help"])
+
 		for key, value in optlist:
-			globalOptions[key][0] = value
+			if key == "--help":
+				print("Danol's Cookie Cutter STL Generator\n\nUsage: svg2cookie (options) (file1) (file2) (dir1)\nOptions:")
+
+				for key, data in globalOptions.items():
+					print(F"--{key}={data[0]}\n\t{data[1]}\n")
+
+				return
+
+			globalOptions[key.lstrip("--")] = [value, "--"]
 
 		# Prase config file
 		if os.path.exists(globalOptions["configFile"][0]):
