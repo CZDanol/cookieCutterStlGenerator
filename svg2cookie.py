@@ -90,7 +90,7 @@ def main():
 
 		for key, value in optlist:
 			if key == "--help":
-				print("Danol's Cookie Cutter STL Generator\n\nUsage: svg2cookie (options) (file1) (file2) (dir1)\nOptions:")
+				print("Danol's Cookie Cutter STL Generator\n\nUsage:\n\tsvg2cookie (options) (file1) (file2) (dir1)\n\nOptions:")
 
 				for key, data in globalOptions.items():
 					print(F"--{key}={data[0]}\n\t{data[1]}\n")
