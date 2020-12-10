@@ -7,6 +7,7 @@ minkowski() {
 		}
 	}
 
+	// This is the "extrusion" profile
 	rotate_extrude($fn=8) polygon(points=[
 		[0, 0],
 		[baseWidth / 2, 0],
