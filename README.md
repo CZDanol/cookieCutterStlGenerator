@@ -1,4 +1,6 @@
 # Danol's SVG -> Cookie Cutter STL Generator
+![input](etc/input.png)
+![input](etc/output.png)
 
 ## How it works
 * Takes in SVG/DWF files (even in batch)
