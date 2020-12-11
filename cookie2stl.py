@@ -23,6 +23,8 @@ globalOptions = {
 	"watermark": [1, "If set to 1, a watermark is added on the cutter"],
 	"watermarkText": ["DANOL", "Text of the watermark"],
 
+	"w": [0, "(mm) If set to anything else than 0, will resize the drawing so it has weight w"],
+
 	"openscadLocation": [None, "Location of the scad exe file"],
 	"genStl": [0, "Will automatically generate STL files if set to 1. openscadLocation needs to be set"],
 }

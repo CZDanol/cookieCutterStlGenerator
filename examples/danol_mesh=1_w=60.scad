@@ -9,10 +9,10 @@ meshWidth = 1;
 meshArea = 400;
 watermark = 1;
 watermarkText = "DANOL";
-w = 0;
+w = 60;
 openscadLocation = "D:/Programy/OpenSCAD/openscad.exe";
 genStl = 1;
-sourceFile = "D:\\Tvorba\\3D\\2020\\cookieCutterGenerator\\examples\\danol_mesh=1.svg";
+sourceFile = "D:\\Tvorba\\3D\\2020\\cookieCutterGenerator\\examples\\danol_mesh=1_w=60.svg";
 // The cutter
 minkowski() {
 	linear_extrude(height=0.001) difference() {
