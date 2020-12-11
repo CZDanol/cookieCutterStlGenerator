@@ -1,25 +1,25 @@
 # Danol's SVG -> Cookie Cutter STL Generator
 
 ## How it works
-* Takes in SVG files (even in batch)
-  * Works with **STROKES ONLY**. Ignores non-stroked objects.
+* Takes in SVG/DWF files (even in batch)
+  * Best to set the SVG to strokes only.
   * It can contain multiple paths.
-  * The input required is quite fiddly. The SVG must contain the file dimensions. It works for me in Affinity Designer when checking "Flatten tranforms" and "Set viewbox" in the "More" menu in export to SVG.
 * Spits out OpenSCAD files
 * If you specify OpenSCAD filepath, it can automatically generate STL files
+* The OpenSCAD generation is quite slow because it's using minkowski sum. Well, OpenSCAD sucks :/ But at least I've made it when processing multiple svgs.
 
 ## Settings
 Settings can be specified in multiple ways (ordered by priority)
-1. TODO: File names. File name is split by `_` and then every item is scanned against settings list (for example `cook1_h=10.svg`)
+1. File names. File name is split by `_` and then every item is scanned against settings list (for example `cook1_h=10.svg`)
 1. Command line arguments to the script.
-1. INI file.
+1. INI file in the directory of the svg.
    * Default ini location: "config.ini" in the working folder.
    * Can set all values from "help", they must be in the `[DEFAULT]` section.
 
 ### Available settings
 ```
 Usage:
-	svg2cookie (options) (file1) (file2) (dir1)
+        cookie2stl (options) (files or dirs)
 
 Options:
 --baseWidth=4
@@ -37,8 +37,8 @@ Options:
 --cutterWedgeHeight=1
         (mm) Height of the wedge of the cutter extrusion. The larger this number, the sharper the cutter.
 
---meshAlways=0
-        If set to 1, a support mesh is always generated
+--mesh=0
+        If set to 1, a support mesh is generated (needed for multi-path cutters)
 
 --meshDistance=10
         (mm) Distance of mesh grills
@@ -49,17 +49,19 @@ Options:
 --meshArea=400
         (mm) Area where the mesh is generated (+-)
 
+--watermark=1
+        If set to 1, a watermark is added on the cutter
+
+--watermarkText=DANOL
+        Text of the watermark
+
 --openscadLocation=None
         Location of the scad exe file
 
 --genStl=0
         Will automatically generate STL files if set to 1. openscadLocation needs to be set
-
---configFile=config.ini
-        Path to the config file. Settings from this file will be aplied if the file exists. Settings have to be in the [DEFAULT] section.
 ```
 
 ## Requirements
 * Python
 * OpenSCAD
-* `svgoutline` Python library

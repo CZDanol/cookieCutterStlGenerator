@@ -1,3 +1,17 @@
+baseWidth = 4;
+baseHeight = 1;
+cutterWidth = 0.5;
+cutterHeight = 10;
+cutterWedgeHeight = 1;
+mesh = 1;
+meshDistance = 10;
+meshWidth = 1;
+meshArea = 400;
+watermark = 1;
+watermarkText = "DANOL";
+openscadLocation = "D:/Programy/OpenSCAD/openscad.exe";
+genStl = 1;
+sourceFile = "D:\\Tvorba\\3D\\2020\\cookieCutterGenerator\\examples\\danol_mesh=1.svg";
 // The cutter
 minkowski() {
 	linear_extrude(height=0.001) difference() {

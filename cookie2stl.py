@@ -1,13 +1,11 @@
 import getopt
 import sys
 import os
-import svgoutline
-import svgoutline
+import re
 import configparser
 import subprocess
 import traceback
 import concurrent.futures
-import xml.etree.ElementTree
 
 globalOptions = {
 	"baseWidth": [4, "(mm) Width of the base"],
@@ -17,55 +15,56 @@ globalOptions = {
 	"cutterHeight": [10, "(mm) Height of the cutter extrusioon (including wedge)"],
 	"cutterWedgeHeight": [1, "(mm) Height of the wedge of the cutter extrusion. The larger this number, the sharper the cutter."],
 
-	"meshAlways": [0, "If set to 1, a support mesh is always generated"],
+	"mesh": [0, "If set to 1, a support mesh is generated (needed for multi-path cutters)"],
 	"meshDistance": [10, "(mm) Distance of mesh grills"],
 	"meshWidth": [1, "(mm) Width of mesh grills"],
 	"meshArea": [400, "(mm) Area where the mesh is generated (+-)"],
 
+	"watermark": [1, "If set to 1, a watermark is added on the cutter"],
+	"watermarkText": ["DANOL", "Text of the watermark"],
+
 	"openscadLocation": [None, "Location of the scad exe file"],
 	"genStl": [0, "Will automatically generate STL files if set to 1. openscadLocation needs to be set"],
-
-	"configFile": ["config.ini", "Path to the config file. Settings from this file will be aplied if the file exists. Settings have to be in the [DEFAULT] section."],
 }
 
 templateContent = open(os.path.dirname(os.path.realpath(__file__)) + "/supp/template.scad", "r").read()
+fielConfigPattern = re.compile("^([a-zA-Z]+)=(.+)$")
 
 def processFile(filename):
 	try:
-		print(F"Processing '{filename}'...");
-
-		options = globalOptions
 		absoluteFilePath = os.path.realpath(filename)
 		baseFilePath = os.path.splitext(absoluteFilePath)[0]
 
+		print(F"Processing '{filename}'...");
+
+		options = globalOptions
+
 		scadFilePath = baseFilePath + ".scad"
 		stlFilePath = baseFilePath + ".stl"
+		configFilePath = os.path.join(os.path.dirname(absoluteFilePath), "config.ini")
+
+		# Load config file in the directory
+		if os.path.exists(configFilePath):
+			config = configparser.ConfigParser()
+			config.optionxform=str
+			config.read(configFilePath)
+
+			cfg = config["DEFAULT"]
+			for key in cfg:
+				options[key] = [cfg.get(key), "--"]
+
+		# Parse file name for options
+		for part in os.path.basename(baseFilePath).split("_"):
+			m = fielConfigPattern.match(part)
+			if m:
+				options[m.group(1)] = [m.group(2), "--"]
+
+
+		options["sourceFile"] = [absoluteFilePath.replace("\\", "\\\\"), "--"]
 
 		# Generate scad file
 		if True:
 			scadContent = ""
-
-			svgData = svgoutline.svg_to_outlines(xml.etree.ElementTree.parse(filename).getroot(), pixels_per_mm=10)
-			scadContent += "lines = ["
-			lineI = 0
-			for lineData in svgData:
-				if lineI > 0:
-					scadContent += ", "
-
-				scadContent += "["
-				pointI = 0
-
-				for point in lineData[2]:
-					if pointI > 0:
-						scadContent += ", "
-
-					scadContent += F"[{point[0]}, {point[1]}]"
-					pointI += 1
-					
-				scadContent += "]"
-				lineI += 1
-
-			scadContent += "];\n"
 
 			for key, data in options.items():
 				val = data[0] if str(data[0]).replace('.', '', 1).isnumeric() else F"\"{str(data[0])}\""
@@ -86,11 +85,11 @@ def processFile(filename):
 def main():
 	try:
 		# Parse command line options
-		optlist, files = getopt.getopt(sys.argv[1:], "", list(map(lambda x : x + "=", globalOptions.keys())) + ["help"])
+		optlist, entries = getopt.getopt(sys.argv[1:], "", list(map(lambda x : x + "=", globalOptions.keys())) + ["help"])
 
 		for key, value in optlist:
 			if key == "--help":
-				print("Danol's Cookie Cutter STL Generator\n\nUsage:\n\tsvg2cookie (options) (file1) (file2) (dir1)\n\nOptions:")
+				print("Danol's Cookie Cutter STL Generator\n\nUsage:\n\tcookie2stl (options) (files or dirs)\n\nOptions:")
 
 				for key, data in globalOptions.items():
 					print(F"--{key}={data[0]}\n\t{data[1]}\n")
@@ -100,22 +99,24 @@ def main():
 			globalOptions[key.lstrip("--")] = [value, "--"]
 
 		# Prase config file
-		if os.path.exists(globalOptions["configFile"][0]):
+		if False and os.path.exists("config.ini"):
 			config = configparser.ConfigParser()
 			config.optionxform=str
-			config.read(globalOptions["configFile"][0])
+			config.read("config.ini")
 
 			cfg = config["DEFAULT"]
 			for key in cfg:
 				globalOptions[key] = [cfg.get(key), "--"]
 
-		else:
-			print("Config file not found.")
-
 		# Process files
 		executor = concurrent.futures.ThreadPoolExecutor()
-		for file in files:
-			executor.submit(processFile, file)
+		for entry in entries:
+			if os.path.isdir(entry):
+				for root, dirs, files in os.walk(entry):
+					for file in filter(lambda f: f.endswith(".svg") or f.endswith(".dwf"), files):
+						executor.submit(processFile, os.path.join(root, file))
+			else:
+				executor.submit(processFile, entry)
 
 	except Exception as e:
 		traceback.print_exc()
