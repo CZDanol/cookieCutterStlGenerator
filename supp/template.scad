@@ -1,5 +1,5 @@
 module sourceModel() {
-	resize([w, 0, 0], auto=true) scale(scaling) import(sourceFile, center=true);
+	resize([w, 0, 0], auto=true) scale(scaling) import(sourceFile, center=center);
 }
 
 module sourceModelHull() {

@@ -20,6 +20,8 @@ globalOptions = {
 	"meshWidth": [1, "(mm) Width of mesh grills"],
 	"meshArea": [400, "(mm) Area where the mesh is generated (+-)"],
 
+	"center": ["true", "Whether the cutter should be centered"],
+
 	"w": [0, "(mm) If set to anything else than 0, will resize the drawing so it has weight w"],
 	"scaling": [1, "(mm) Used for scaling the source svg file. Doesn't make sense combining with 'w'."],
 
@@ -67,7 +69,12 @@ def processFile(filename):
 			scadContent = ""
 
 			for key, data in options.items():
-				val = data[0] if str(data[0]).replace('.', '', 1).isnumeric() else F"\"{str(data[0])}\""
+				if str(data[0]).replace('.', '', 1).isnumeric():
+					val = data[0]
+				elif data[0] == "true" or data[0] == "false":
+					val = data[0]
+				else:
+					val = F"\"{str(data[0])}\""
 				scadContent += F"{key} = {val};\n"
 
 			scadContent += templateContent
