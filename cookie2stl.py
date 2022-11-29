@@ -11,19 +11,17 @@ globalOptions = {
 	"baseWidth": [4, "(mm) Width of the base"],
 	"baseHeight": [1, "(mm) Height of the base"],
 
-	"cutterWidth": [0.5, "(mm) Width of the cutter extrusion"],
+	"cutterWidth": [2, "(mm) Width of the cutter extrusion"],
 	"cutterHeight": [10, "(mm) Height of the cutter extrusioon (including wedge)"],
-	"cutterWedgeHeight": [1, "(mm) Height of the wedge of the cutter extrusion. The larger this number, the sharper the cutter."],
+	"cutterWedgeHeight": [3, "(mm) Height of the wedge of the cutter extrusion. The larger this number, the sharper the cutter."],
 
 	"mesh": [0, "If set to 1, a support mesh is generated (needed for multi-path cutters)"],
 	"meshDistance": [10, "(mm) Distance of mesh grills"],
 	"meshWidth": [1, "(mm) Width of mesh grills"],
 	"meshArea": [400, "(mm) Area where the mesh is generated (+-)"],
 
-	"watermark": [1, "If set to 1, a watermark is added on the cutter"],
-	"watermarkText": ["DANOL", "Text of the watermark"],
-
 	"w": [0, "(mm) If set to anything else than 0, will resize the drawing so it has weight w"],
+	"scaling": [1, "(mm) Used for scaling the source svg file. Doesn't make sense combining with 'w'."],
 
 	"openscadLocation": [None, "Location of the scad exe file"],
 	"genStl": [0, "Will automatically generate STL files if set to 1. openscadLocation needs to be set"],

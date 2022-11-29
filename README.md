@@ -30,13 +30,13 @@ Options:
 --baseHeight=1
         (mm) Height of the base
 
---cutterWidth=0.5
+--cutterWidth=0.8
         (mm) Width of the cutter extrusion
 
 --cutterHeight=10
         (mm) Height of the cutter extrusioon (including wedge)
 
---cutterWedgeHeight=1
+--cutterWedgeHeight=3
         (mm) Height of the wedge of the cutter extrusion. The larger this number, the sharper the cutter.
 
 --mesh=0
@@ -51,11 +51,11 @@ Options:
 --meshArea=400
         (mm) Area where the mesh is generated (+-)
 
---watermark=1
-        If set to 1, a watermark is added on the cutter
+--w=0
+        (mm) If set to anything else than 0, will resize the drawing so it has weight w
 
---watermarkText=DANOL
-        Text of the watermark
+--scaling=1
+        (mm) Used for scaling the source svg file. Doesn't make sense combining with 'w'.
 
 --openscadLocation=None
         Location of the scad exe file

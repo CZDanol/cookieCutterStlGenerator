@@ -1,8 +1,16 @@
+module sourceModel() {
+	resize([w, 0, 0], auto=true) scale(scaling) import(sourceFile, center=true);
+}
+
+module sourceModelHull() {
+	hull() sourceModel();
+}
+
 // The cutter
 minkowski() {
 	linear_extrude(height=0.001) difference() {
-		offset(delta=0.001) resize([w, 0, 0], auto=true) import(sourceFile, center=true);
-		offset(delta=-0.001) resize([w, 0, 0], auto=true) import(sourceFile, center=true);
+		offset(delta=0.001) sourceModel();
+		offset(delta=-0.001) sourceModel();
 	}
 
 	// This is the "extrusion" profile
@@ -26,22 +34,11 @@ if(mesh) linear_extrude(height=baseHeight) {
 			}
 		}
 
-		hull() resize([w, 0, 0], auto=true) import(sourceFile, center=true);
+		sourceModelHull();
 	}
 
 	difference() {
-		offset(r=baseWidth/2) hull() resize([w, 0, 0], auto=true) import(sourceFile, center=true);
-		offset(r=-baseWidth/2) hull() resize([w, 0, 0], auto=true) import(sourceFile, center=true);
+		offset(r=baseWidth/2) sourceModelHull();
+		offset(r=-baseWidth/2) sourceModelHull();
 	}
-}
-
-// Waternark
-if(watermark) intersection() {
-	translate([0, 0, baseHeight]) linear_extrude(height=cutterHeight) difference() {
-		offset(delta=cutterWidth / 2 + 0.5) resize([w, 0, 0], auto=true) import(sourceFile, center=true);
-		offset(delta=-cutterWidth / 2 - 0.5) resize([w, 0, 0], auto=true) import(sourceFile, center=true);
-	}
-
-	translate([0, 0, baseHeight + cutterHeight / 2]) rotate([90, 0, 0]) linear_extrude(height=1000)
-	text(watermarkText, size=4, font="Fira Sans", halign="center", valign="center");
 }
